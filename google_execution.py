@@ -19,7 +19,7 @@ except ImportError:
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/script-python-quickstart.json
 SCOPES = ['https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/forms','https://www.googleapis.com/auth/spreadsheets']
-CLIENT_SECRET_FILE = 'client_secret_apps.json'
+CLIENT_SECRET_FILE = 'client_secret_main.json'
 APPLICATION_NAME = 'Google Apps Script Execution API Python Quickstart'
 
 
@@ -52,7 +52,7 @@ def get_credentials():
     return credentials
 
 
-def main(funcName):
+def main(funcName, params):
     """Shows basic usage of the Apps Script Execution API.
 
     Creates a Apps Script Execution API service object and uses it to call an
@@ -65,7 +65,13 @@ def main(funcName):
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('script','v1', http=http)
 
-    request = {"function": funcName}
+    if params is None:
+        request = {"function": funcName}
+    else:    
+        request = {
+        "function": funcName,
+        "parameters": params
+        }
 
     try:
         response = service.scripts().run(body=request,

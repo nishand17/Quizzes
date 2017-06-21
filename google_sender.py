@@ -20,7 +20,7 @@ from oauth2client.file import Storage
 from googleapiclient import errors
 
 SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
-CLIENT_SECRET_FILE = 'client_secret.json'
+CLIENT_SECRET_FILE = 'client_secret_main.json'
 APPLICATION_NAME = 'Gmail API Python Quickstart'
 
 try:
