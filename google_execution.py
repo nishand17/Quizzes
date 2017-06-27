@@ -16,7 +16,7 @@ try:
 except ImportError:
     flags = None
 
-# If modifying these scopes, delete your previously saved credentials
+# If modifying these scopes, delete previously saved credentials
 # at ~/.credentials/script-python-quickstart.json
 SCOPES = ['https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/forms','https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'client_secret_main.json'
