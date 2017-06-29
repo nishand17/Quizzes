@@ -57,27 +57,28 @@ def grade(gradeID, name):
 				if is_float(correct_answer):
 					student_float = float(student_answer)
 					correct_float = float(correct_answer)
-					partial = 0.05*correct_float
+					partial = float(template_data[question_index][8])
 					low_bound = abs(correct_float) - partial
 					high_bound = abs(correct_float) + partial
+					print partial, low_bound, high_bound
 					if student_float == correct_float: 
 						points+=1
-					else: 
+					else:
 						if low_bound <= abs(student_float) <= high_bound: 
 							points+=0.5 
 				    		
-
 				    		
 				    	
 				elif is_int(correct_answer):
 					student_int = int(student_answer)
 					correct_int = int(correct_answer)
-					partial = 0.05*correct_int
+					partial = float(template_data[question_index][8])
 					low_bound = abs(correct_int) - partial
 					high_bound = abs(correct_int) + partial
+					print partial, low_bound, high_bound
 					if student_int == correct_int:
 						points+=1
-					else: 
+					else:
 						if low_bound <= abs(student_int) <= high_bound: 
 							points+=0.5
 							
@@ -128,25 +129,28 @@ if option == 'send':
 			  <head></head>
 			  <body>
 			  <center>
-			  	<table bordercolor="#c29df9" frame="box" bgcolor="#EDE7F6" style="border-collapse: separate; border-spacing: 30px">
-			  		<th><h1>Fill out "%s"</h1></th>
+			  <div style="box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+			  	<table bordercolor="#c29df9" frame="box" bgcolor="#EDE7F6" style="border-collapse: separate; border-spacing: 15px;">
+			  		<th bgcolor = "#673AB7" style="color: #f7faff;"><h1>Fill out %s</h1></th>
 			  		<tr>
-			  			<td align="center">I've invited you to fill out my form: %s</td>
+			  			<td align="left" width="400" bgcolor="#fdfdfd" style="padding:30px; color: #333333;"><b>I've invited you to fill out my form: %s<b></td>
+			  			<br><br><br><br><br>
+			  		</tr>		  		
+			  		<tr>
+			  			<td align="center" style="padding:10px; "><a href=%s><button style="background-color: #673AB7; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px;">Complete Form</button></a></td>
 			  		</tr>
 			  		<tr>
-			  			<td align="center">Click the button below to complete the form</td>
-			  		</tr>
-			  		<tr>
-			  			<td align="center"><a href=%s><button style="background-color: #673AB7; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px">Complete Form</button></a></td>
-			  		</tr>
+			  			<td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2000px-Google_2015_logo.svg.png" width="75px" height="25px"></td>
+			  		</tr>			  		
 			  	</table>	
-			  	</center>   
+	  		  </div>
+			  </center>   
 			  </body>
 			</html>
 			"""%(name, description, link)
 
 	for email_row in matrix:
-		google_sender.run("nishand@sfhs.com", email_row[0], "Google Quiz Invitation v2", message)		
+		google_sender.run("nishand@sfhs.com", email_row[0], "Google Quiz Invitation v3", message)		
 elif option == 'create' or option == 'view':
 	create_list = google_execution.main('getCreateList', None)
 	print "Here are the current quizzes you can view and create"
