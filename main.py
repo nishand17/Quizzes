@@ -1,6 +1,6 @@
 import google_sender
 import google_execution
-
+from grade_classes import Category, Question, is_float, is_int
 def grade(gradeID, name):
 	'''
 	1. Retrieve both template and response data 
@@ -18,15 +18,94 @@ def grade(gradeID, name):
 	question_indices = [x for x in range(len(template_data)) if template_data[x][0] == 'Question']
 	categories = []
 	for student_row in range(1, len(response_data)):
-		for index, place in zip(question_indices, range(3, 3+len(question_indices))):
-			if template_data[index][5].split(',')[0] == 'checkbox':
-				points_per_check = float(1)/len(template_data[index][6].split(','))
-				student_answer_list = response_data[student_row][place].split(',')
+		for question_index, response_place in zip(question_indices, range(3, 3+len(question_indices))):
+			if template_data[question_index][5].split(',')[0] == 'checkbox': # special cases for checkboxes because it has several answers/repsonses
+				points_per_check = float(1)/len(template_data[question_index][6].split(','))
+				student_answer_list = response_data[student_row][response_place].split(',')
 				student_answers = [x.strip(' ') for x in student_answer_list]
-				print student_answer_list
+				correct_answers_list = template_data[question_index][6].split(',')
+				correct_answers = [x.strip(' ') for x in correct_answers_list]
+				points_given = 0
+				for choice in range(len(template_data[question_index][6].split(','))):
+					try:
+						if student_answers[choice] in correct_answers:
+							points_given+=points_per_check
+					except IndexError:
+						print ""
+				checkbox_category = template_data[question_index][7]
+				checkbox_name = template_data[question_index][1]
+				student_answers_string = ', '.join(student_answers)
+				correct_answers_string = ', '.join(correct_answers)
+				q = Question(student_answers_string, correct_answers_string, points_given, checkbox_category, checkbox_name)
+				category_gen = [x for x in range(len(categories)) if categories[x].name == checkbox_category]
+				if len(category_gen) == 0:
+					c = Category(checkbox_category)
+					c.numQuestions+=1
+					c.totalPoints+=points_given
+					c.questions.append(q)
+					categories.append(c)
+				else:
+					category_index = category_gen[0]
+					categories[category_index].numQuestions+=1
+					categories[category_index].totalPoints+=points_given
+					categories[category_index].questions.append(q)		
 				continue
+			else:
+				student_answer = response_data[student_row][response_place].strip(' ')
+				correct_answer = template_data[question_index][6].strip(' ')
+				points = 0
+				if is_float(correct_answer):
+					student_float = float(student_answer)
+					correct_float = float(correct_answer)
+					partial = 0.05*correct_float
+					low_bound = abs(correct_float) - partial
+					high_bound = abs(correct_float) + partial
+					if student_float == correct_float: 
+						points+=1
+					else: 
+						if low_bound <= abs(student_float) <= high_bound: 
+							points+=0.5 
+				    		
 
-
+				    		
+				    	
+				elif is_int(correct_answer):
+					student_int = int(student_answer)
+					correct_int = int(correct_answer)
+					partial = 0.05*correct_int
+					low_bound = abs(correct_int) - partial
+					high_bound = abs(correct_int) + partial
+					if student_int == correct_int:
+						points+=1
+					else: 
+						if low_bound <= abs(student_int) <= high_bound: 
+							points+=0.5
+							
+							
+				    		
+				else: 
+					if student_answer == correct_answer: 
+						points+=1
+				question_category = template_data[question_index][7]		
+				question_name = template_data[question_index][1]
+				q = Question(student_answer, correct_answer, points, question_category, question_name)
+				category_gen = [x for x in range(len(categories)) if categories[x].name == question_category]
+				if len(category_gen) == 0:
+					c = Category(question_category)
+					c.numQuestions+=1
+					c.totalPoints+=points
+					c.questions.append(q)
+					categories.append(c)
+				else:
+					category_index = category_gen[0]
+					categories[category_index].numQuestions+=1
+					categories[category_index].totalPoints+=points
+					categories[category_index].questions.append(q)
+	for cat in categories: 
+		question_string = ''
+		for category_q in cat.questions: 
+			question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + "\n"
+		print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, " Questions\n", question_string	
 
 option = raw_input("Enter what you wish to do (send, create, view, grade)\n")
 
