@@ -3,6 +3,7 @@ class Category:
 		self.name = name
 		self.numQuestions = 0
 		self.totalPoints = 0
+		self.correctPercentage = 0
 		self.questions = []
 		
 class Question:

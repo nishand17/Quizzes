@@ -66,9 +66,7 @@ def grade(gradeID, name):
 					else:
 						if low_bound <= abs(student_float) <= high_bound: 
 							points+=0.5 
-				    		
-				    		
-				    	
+				    		  	
 				elif is_int(correct_answer):
 					student_int = int(student_answer)
 					correct_int = int(correct_answer)
@@ -81,8 +79,7 @@ def grade(gradeID, name):
 					else:
 						if low_bound <= abs(student_int) <= high_bound: 
 							points+=0.5
-							
-							
+													
 				    		
 				else: 
 					if student_answer == correct_answer: 
@@ -103,10 +100,11 @@ def grade(gradeID, name):
 					categories[category_index].totalPoints+=points
 					categories[category_index].questions.append(q)
 	for cat in categories: 
+		cat.correctPercentage = round((float(cat.totalPoints)/float(cat.numQuestions)*100), 2)
 		question_string = ''
 		for category_q in cat.questions: 
 			question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + "\n"
-		print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, " Questions\n", question_string	
+		print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	
 
 option = raw_input("Enter what you wish to do (send, create, view, grade)\n")
 
@@ -134,7 +132,6 @@ if option == 'send':
 			  		<th bgcolor = "#673AB7" style="color: #f7faff;"><h1>Fill out %s</h1></th>
 			  		<tr>
 			  			<td align="left" width="400" bgcolor="#fdfdfd" style="padding:30px; color: #333333;"><b>I've invited you to fill out my form: %s<b></td>
-			  			<br><br><br><br><br>
 			  		</tr>		  		
 			  		<tr>
 			  			<td align="center" style="padding:10px; "><a href=%s><button style="background-color: #673AB7; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px;">Complete Form</button></a></td>
@@ -150,7 +147,7 @@ if option == 'send':
 			"""%(name, description, link)
 
 	for email_row in matrix:
-		google_sender.run("nishand@sfhs.com", email_row[0], "Google Quiz Invitation v3", message)		
+		google_sender.run("nishand@sfhs.com", email_row[0], "Google Quiz Invitation via QuizApp", message)		
 elif option == 'create' or option == 'view':
 	create_list = google_execution.main('getCreateList', None)
 	print "Here are the current quizzes you can view and create"
