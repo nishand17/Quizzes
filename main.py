@@ -1,6 +1,8 @@
 import google_sender
 import google_execution
 from grade_classes import Category, Question, is_float, is_int
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
 def grade(gradeID, name):
 	'''
 	1. Retrieve both template and response data 
@@ -16,8 +18,8 @@ def grade(gradeID, name):
 	template_data = google_execution.main('getTemplateData',[gradeID])
 	response_data = google_execution.main('getResponsesData', [gradeID])
 	question_indices = [x for x in range(len(template_data)) if template_data[x][0] == 'Question']
-	categories = []
 	for student_row in range(1, len(response_data)):
+		categories = []
 		for question_index, response_place in zip(question_indices, range(3, 3+len(question_indices))):
 			if template_data[question_index][5].split(',')[0] == 'checkbox': # special cases for checkboxes because it has several answers/repsonses
 				points_per_check = float(1)/len(template_data[question_index][6].split(','))
@@ -99,12 +101,25 @@ def grade(gradeID, name):
 					categories[category_index].numQuestions+=1
 					categories[category_index].totalPoints+=points
 					categories[category_index].questions.append(q)
-	for cat in categories: 
-		cat.correctPercentage = round((float(cat.totalPoints)/float(cat.numQuestions)*100), 2)
-		question_string = ''
-		for category_q in cat.questions: 
-			question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + "\n"
-		print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	
+		totalQuestions = 0;
+		totalCorrect = 0;				
+		for cat in categories: 
+			cat.correctPercentage = round((float(cat.totalPoints)/float(cat.numQuestions)*100), 2)
+			totalQuestions+= cat.numQuestions
+			totalCorrect+= cat.totalPoints
+
+			question_string = ''
+			for category_q in cat.questions: 
+				question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + "\n"
+			print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	
+		templateLoader = FileSystemLoader(searchpath="./templates")
+		templateEnv = Environment(loader=templateLoader)
+		TEMPLATE_FILE = "index.html"
+		template = templateEnv.get_template(TEMPLATE_FILE)
+		outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
+		google_sender.run('nishand@gmail.com', response_data[student_row][1], ('Your Grade Report for '+name), outputText)
+
+
 
 option = raw_input("Enter what you wish to do (send, create, view, grade)\n")
 
@@ -147,7 +162,7 @@ if option == 'send':
 			"""%(name, description, link)
 
 	for email_row in matrix:
-		google_sender.run("nishand@sfhs.com", email_row[0], "Google Quiz Invitation via QuizApp", message)		
+		google_sender.run("nishand@gmail.com", email_row[0], "Google Quiz Invitation via QuizApp", message)		
 elif option == 'create' or option == 'view':
 	create_list = google_execution.main('getCreateList', None)
 	print "Here are the current quizzes you can view and create"

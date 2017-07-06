@@ -4,69 +4,46 @@
 	<body>
 		<font face="Helvetica">
 		<table frame="box" bgcolor="#EDE7F6" style="border-collapse: separate; border-spacing: 0px;">
-			<th bgcolor = "#7d00ff" style="color: #f7faff; padding: 5px;"><h1>&nbsp; &nbsp;Your results for **NAME &nbsp; &nbsp;</h1></th>
+			<th bgcolor = "#7d00ff" style="color: #f7faff; padding: 5px;"><h1>&nbsp; &nbsp;Your results for {{ name }} &nbsp; &nbsp;</h1></th>
 				<tr bgcolor="#a64dff">
 					<td align="center"><font size="5px"><b>Overview</b></font></td>
 				</tr>
-				<tr bgcolor="#bf80ff"> <!-- HARD CODED -->
-					<td>Final Score: </td>
+				<tr bgcolor="#bf80ff"> 
+					<td>Final Score: {{ final_score }} points of {{ total_questions }} </td>
 				</tr>
-				<tr bgcolor="#bf80ff"> <!-- Loop Categories -->
-					<td>C1 - 0/11</td>
-				</tr>
-				<tr bgcolor="#bf80ff">
-					<td>C2 - 10/11</td>
-				</tr>
-				<tr bgcolor="#bf80ff">
-					<td>C3 - 10/11</td>
-				</tr>
+				{% for category in categories %}
+					<tr bgcolor="#bf80ff"> <!-- Loop Categories -->
+						<td>{{ category.name }} - {{ category.totalPoints }}/{{ category.numQuestions }}</td>
+					</tr>
+				{% endfor %}
 
 				<tr bgcolor="#a64dff">
 					<td align="center"><font size="5px"><b>Details by Category</b></font></td>
 				</tr>
-				<tr bgcolor="#bf80ff">
-					<td><font size="4px"><b>Bar Charts: 7 of 10, or 70%</b></font></td> <!-- Loop Categories -->
-				</tr>
 
-				<tr bgcolor="#cc99ff">
-					<td>What is the longest river in the world?</td> <!-- Loop Questions of Category -->
-				</tr>
-				<tr bgcolor="#f2e6ff">
-					<td style="padding-left: 2em"><font size="2.5px">Your answer: The Nile</font></td>
-				</tr>
-				<tr bgcolor="#f2e6ff">
-					<td style="padding-left: 2em"><font size="2.5px">Correct Answer: The Nile</font></td>
-				</tr>
-				<tr bgcolor="#f2e6ff">
-					<td style="padding-left: 2em"><font size="2.5px">Points Given</font></td>
-				</tr>
+				{% for category in categories %}
+					<tr bgcolor="#bf80ff">
+						<td><font size="4px"><b>{{ category.name }}: {{ category.totalPoints }} of {{ category.numQuestions }}, or {{ category.correctPercentage }}%</b></font></td> 
+					</tr>
+					{% for question in category.questions %}
+						<tr bgcolor="#cc99ff">
+							<td>{{ question.name }}</td> <!-- Loop Questions of Category -->
+						</tr>
+						<tr bgcolor="#f2e6ff">
+							<td style="padding-left: 2em"><font size="2.5px">Your answer: {{ question.studentAnswer }}</font></td>
+						</tr>
+						<tr bgcolor="#f2e6ff">
+							<td style="padding-left: 2em"><font size="2.5px">Correct Answer: {{ question.correctAnswer }}</font></td>
+						</tr>
+						<tr bgcolor="#f2e6ff">
+							<td style="padding-left: 2em"><font size="2.5px">Points Given: {{ question.pointsGiven }}</font></td>
+						</tr>
+					{% endfor %}	
+				{% endfor %}
 
-				
 
 
 		</table>
 		</font>
 	</body>
 </html>
-
-<!-- <html>
-  <head></head>
-  <body>
-  <center>
-  <div style="box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
-  	<table bordercolor="#c29df9" frame="box" bgcolor="#EDE7F6" style="border-collapse: separate; border-spacing: 15px;">
-  		<th bgcolor = "#673AB7" style="color: #f7faff;"><h1>Fill out %s</h1></th>
-  		<tr>
-  			<td align="left" width="400" bgcolor="#fdfdfd" style="padding:30px; color: #333333;"><b>I've invited you to fill out my form: %s<b></td>
-  		</tr>		  		
-  		<tr>
-  			<td align="center" style="padding:10px; "><a href=%s><button style="background-color: #673AB7; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px;">Complete Form</button></a></td>
-  		</tr>
-  		<tr>
-  			<td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2000px-Google_2015_logo.svg.png" width="75px" height="25px"></td>
-  		</tr>			  		
-  	</table>	
-	  </div>
-  </center>   
-  </body>
-</html> -->
