@@ -4,38 +4,38 @@
 	<body>
 		<font face="Helvetica">
 		<table frame="box" bgcolor="#EDE7F6" style="border-collapse: separate; border-spacing: 0px;">
-			<th bgcolor = "#7d00ff" style="color: #f7faff; padding: 5px;"><h1>&nbsp; &nbsp;Your results for {{ name }} &nbsp; &nbsp;</h1></th>
-				<tr bgcolor="#a64dff">
+			<th bgcolor = "#003566" style="color: #f7faff; padding: 5px;"><h1>&nbsp; &nbsp;Your results for {{ name }} &nbsp; &nbsp;</h1></th>
+				<tr bgcolor="#fdb51c">
 					<td align="center"><font size="5px"><b>Overview</b></font></td>
 				</tr>
-				<tr bgcolor="#bf80ff"> 
+				<tr bgcolor="#fdbe35"> 
 					<td>Final Score: {{ final_score }} points of {{ total_questions }} </td>
 				</tr>
 				{% for category in categories %}
-					<tr bgcolor="#bf80ff"> <!-- Loop Categories -->
+					<tr bgcolor="#fdbe35"> <!-- Loop Categories -->
 						<td>{{ category.name }} - {{ category.totalPoints }}/{{ category.numQuestions }}</td>
 					</tr>
 				{% endfor %}
 
-				<tr bgcolor="#a64dff">
+				<tr bgcolor="#fdb51c">
 					<td align="center"><font size="5px"><b>Details by Category</b></font></td>
 				</tr>
 
 				{% for category in categories %}
-					<tr bgcolor="#bf80ff">
+					<tr bgcolor="#fdbe35">
 						<td><font size="4px"><b>{{ category.name }}: {{ category.totalPoints }} of {{ category.numQuestions }}, or {{ category.correctPercentage }}%</b></font></td> 
 					</tr>
 					{% for question in category.questions %}
-						<tr bgcolor="#cc99ff">
+						<tr bgcolor="#fdc64e">
 							<td>{{ question.name }}</td> <!-- Loop Questions of Category -->
 						</tr>
-						<tr bgcolor="#f2e6ff">
+						<tr bgcolor="#fede9a">
 							<td style="padding-left: 2em"><font size="2.5px">Your answer: {{ question.studentAnswer }}</font></td>
 						</tr>
-						<tr bgcolor="#f2e6ff">
+						<tr bgcolor="#fede9a">
 							<td style="padding-left: 2em"><font size="2.5px">Correct Answer: {{ question.correctAnswer }}</font></td>
 						</tr>
-						<tr bgcolor="#f2e6ff">
+						<tr bgcolor="#fede9a">
 							<td style="padding-left: 2em"><font size="2.5px">Points Given: {{ question.pointsGiven }}</font></td>
 						</tr>
 					{% endfor %}	
