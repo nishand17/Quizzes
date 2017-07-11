@@ -8,20 +8,17 @@ def grade(gradeID, name):
 	1. Retrieve both template and response data 
 	2. Run through each question keeping track of studentAnswer, correctAnswer, isCorrect, category
 	3. Keep track of Categories including categoryName, totalNumQuestions, numCorrect
-	categoryArr has questionArr with an array of its questions
-	put this all in an html template and google_sender per studentAnswer (Overview of quiz (# correct total, small category breakdown, chart), detailed by category)
-	Tuesday: Grading process
-	Wednesday: Email mockups
-
-	TODO - Make sure we don't grade something twice (already graded checker)
+	
 	'''
 	template_data = google_execution.main('getTemplateData',[gradeID])
 	response_data = google_execution.main('getResponsesData', [gradeID])
 	question_indices = [x for x in range(len(template_data)) if template_data[x][0] == 'Question']
-	for student_row in range(1, len(response_data)):
-		categories = []
-		for question_index, response_place in zip(question_indices, range(3, 3+len(question_indices))):
-			if template_data[question_index][5].split(',')[0] == 'checkbox': # special cases for checkboxes because it has several answers/repsonses
+	for student_row in range(1, len(response_data)): # loops through each student and their responses
+		categories = [] 
+		if response_data[student_row][0].split(' ')[-1] == "GRADED": # Makes sure not to grade something twice 
+			continue
+		for question_index, response_place in zip(question_indices, range(3, 3+len(question_indices))): # loops though questions and responses
+			if template_data[question_index][5].split(',')[0] == 'checkbox': # special cases for checkboxes because it has several answers/repsonses (that's the only difference, but more has to be accounted for)
 				points_per_check = float(1)/len(template_data[question_index][6].split(','))
 				student_answer_list = response_data[student_row][response_place].split(',')
 				student_answers = [x.strip(' ') for x in student_answer_list]
@@ -56,7 +53,7 @@ def grade(gradeID, name):
 				student_answer = response_data[student_row][response_place].strip(' ')
 				correct_answer = template_data[question_index][6].strip(' ')
 				points = 0
-				if is_float(correct_answer):
+				if is_float(correct_answer): # partial credit floats
 					student_float = float(student_answer)
 					correct_float = float(correct_answer)
 					partial = float(template_data[question_index][8])
@@ -69,7 +66,7 @@ def grade(gradeID, name):
 						if low_bound <= abs(student_float) <= high_bound: 
 							points+=0.5 
 				    		  	
-				elif is_int(correct_answer):
+				elif is_int(correct_answer): #partial credit ints
 					student_int = int(student_answer)
 					correct_int = int(correct_answer)
 					partial = float(template_data[question_index][8])
@@ -84,12 +81,12 @@ def grade(gradeID, name):
 													
 				    		
 				else: 
-					if student_answer == correct_answer: 
+					if student_answer == correct_answer: # otherwise, an exact answer is required
 						points+=1
 				question_category = template_data[question_index][7]		
 				question_name = template_data[question_index][1]
 				q = Question(student_answer, correct_answer, points, question_category, question_name)
-				category_gen = [x for x in range(len(categories)) if categories[x].name == question_category]
+				category_gen = [x for x in range(len(categories)) if categories[x].name == question_category] # finds correct category for this question - category_gen has max length 1
 				if len(category_gen) == 0:
 					c = Category(question_category)
 					c.numQuestions+=1
@@ -103,7 +100,7 @@ def grade(gradeID, name):
 					categories[category_index].questions.append(q)
 		totalQuestions = 0;
 		totalCorrect = 0;				
-		for cat in categories: 
+		for cat in categories: #adds percentage to categories and prints raw grades
 			cat.correctPercentage = round((float(cat.totalPoints)/float(cat.numQuestions)*100), 2)
 			totalQuestions+= cat.numQuestions
 			totalCorrect+= cat.totalPoints
@@ -111,13 +108,14 @@ def grade(gradeID, name):
 			question_string = ''
 			for category_q in cat.questions: 
 				question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + "\n"
-			print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	
+			print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	 
 		templateLoader = FileSystemLoader(searchpath="./templates")
 		templateEnv = Environment(loader=templateLoader)
 		TEMPLATE_FILE = "index.html"
 		template = templateEnv.get_template(TEMPLATE_FILE)
 		outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
-		print outputText
+		#print outputText
+		google_execution.main('setResponseAsGraded', [gradeID, student_row])
 		google_sender.run('nishand@gmail.com', response_data[student_row][1], ('Your Grade Report for the quiz: '+name), outputText)
 
 
