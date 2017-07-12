@@ -7,7 +7,9 @@
 			<th bgcolor = "#003566" style="color: #f7faff; padding: 5px;"><h1>&nbsp; &nbsp;Your results for {{ name }} &nbsp; &nbsp;</h1></th>
 				<tr bgcolor="#fdb51c">
 					<td align="center"><font size="5px"><b>Overview</b></font></td>
+
 				</tr>
+
 				<tr bgcolor="#fdbe35"> 
 					<td>Final Score: {{ final_score }} points of {{ total_questions }} </td>
 				</tr>
@@ -29,6 +31,11 @@
 						<tr bgcolor="#fdc64e">
 							<td>{{ question.name }}</td> <!-- Loop Questions of Category -->
 						</tr>
+						{% for link in question.graphicLinks %}
+							<tr bgcolor="fede9a">
+								<td style="padding-left: 2em"><img src="{{link}}" height="180px"></td>
+							</tr>
+						{% endfor %}
 						<tr bgcolor="#fede9a">
 							<td style="padding-left: 2em"><font size="2.5px">Your answer: {{ question.studentAnswer }}</font></td>
 						</tr>

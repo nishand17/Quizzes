@@ -7,12 +7,13 @@ class Category:
 		self.questions = []
 		
 class Question:
-	def __init__(self, studentAnswer, correctAnswer, pointsGiven, category, name):
+	def __init__(self, studentAnswer, correctAnswer, pointsGiven, category, name, graphicLinks):
 		self.studentAnswer = studentAnswer
 		self.correctAnswer = correctAnswer
 		self.pointsGiven = pointsGiven
 		self.category = category
 		self.name = name
+		self.graphicLinks = graphicLinks
 
 def is_float(num):
     try:

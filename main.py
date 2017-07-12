@@ -9,6 +9,10 @@ def grade(gradeID, name):
 	2. Run through each question keeping track of studentAnswer, correctAnswer, isCorrect, category
 	3. Keep track of Categories including categoryName, totalNumQuestions, numCorrect
 	
+	CHANGELOG:
+	1. Pictures of graphics
+	2. Numerical validation for textboxes
+	3. Partial credit gives full credit in range
 	'''
 	template_data = google_execution.main('getTemplateData',[gradeID])
 	response_data = google_execution.main('getResponsesData', [gradeID])
@@ -35,8 +39,14 @@ def grade(gradeID, name):
 				checkbox_name = template_data[question_index][1]
 				student_answers_string = ', '.join(student_answers)
 				correct_answers_string = ', '.join(correct_answers)
-				q = Question(student_answers_string, correct_answers_string, points_given, checkbox_category, checkbox_name)
+				imagePaths = template_data[question_index][4].split(',')
+				imagePaths = [x.strip(' ') for x in imagePaths]
+				imageLinks = []
+				for path in imagePaths:
+					imageLinks.append(google_execution.main('getImageUrlFromPath', [path]))
+				q = Question(student_answers_string, correct_answers_string, points_given, checkbox_category, checkbox_name, imageLinks)
 				category_gen = [x for x in range(len(categories)) if categories[x].name == checkbox_category]
+
 				if len(category_gen) == 0:
 					c = Category(checkbox_category)
 					c.numQuestions+=1
@@ -59,12 +69,11 @@ def grade(gradeID, name):
 					partial = float(template_data[question_index][8])
 					low_bound = abs(correct_float) - partial
 					high_bound = abs(correct_float) + partial
-					print partial, low_bound, high_bound
 					if student_float == correct_float: 
 						points+=1
 					else:
 						if low_bound <= abs(student_float) <= high_bound: 
-							points+=0.5 
+							points+=1 
 				    		  	
 				elif is_int(correct_answer): #partial credit ints
 					student_int = int(student_answer)
@@ -72,12 +81,11 @@ def grade(gradeID, name):
 					partial = float(template_data[question_index][8])
 					low_bound = abs(correct_int) - partial
 					high_bound = abs(correct_int) + partial
-					print partial, low_bound, high_bound
 					if student_int == correct_int:
 						points+=1
 					else:
 						if low_bound <= abs(student_int) <= high_bound: 
-							points+=0.5
+							points+=1
 													
 				    		
 				else: 
@@ -85,7 +93,12 @@ def grade(gradeID, name):
 						points+=1
 				question_category = template_data[question_index][7]		
 				question_name = template_data[question_index][1]
-				q = Question(student_answer, correct_answer, points, question_category, question_name)
+				imagePaths = template_data[question_index][4].split(',')
+				imagePaths = [x.strip(' ') for x in imagePaths]
+				imageLinks = []
+				for path in imagePaths:
+					imageLinks.append(google_execution.main('getImageUrlFromPath', [path]))
+				q = Question(student_answer, correct_answer, points, question_category, question_name, imageLinks)
 				category_gen = [x for x in range(len(categories)) if categories[x].name == question_category] # finds correct category for this question - category_gen has max length 1
 				if len(category_gen) == 0:
 					c = Category(question_category)
@@ -107,14 +120,16 @@ def grade(gradeID, name):
 
 			question_string = ''
 			for category_q in cat.questions: 
-				question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + "\n"
+				linkString = ''
+				for link in category_q.graphicLinks:
+					linkString += link + ", "
+				question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + " Links: " + linkString + "\n"
 			print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	 
 		templateLoader = FileSystemLoader(searchpath="./templates")
 		templateEnv = Environment(loader=templateLoader)
 		TEMPLATE_FILE = "index.html"
 		template = templateEnv.get_template(TEMPLATE_FILE)
 		outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
-		#print outputText
 		google_execution.main('setResponseAsGraded', [gradeID, student_row])
 		google_sender.run('nishand@gmail.com', response_data[student_row][1], ('Your Grade Report for the quiz: '+name), outputText)
 
