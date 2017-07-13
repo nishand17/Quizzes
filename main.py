@@ -1,5 +1,4 @@
-import google_sender
-import google_execution
+from GoogleAPI import google_sender, google_execution
 from grade_classes import Category, Question, is_float, is_int
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -39,11 +38,12 @@ def grade(gradeID, name):
 				checkbox_name = template_data[question_index][1]
 				student_answers_string = ', '.join(student_answers)
 				correct_answers_string = ', '.join(correct_answers)
-				imagePaths = template_data[question_index][4].split(',')
+				imagePaths = template_data[question_index][9].split(',')
 				imagePaths = [x.strip(' ') for x in imagePaths]
 				imageLinks = []
 				for path in imagePaths:
-					imageLinks.append(google_execution.main('getImageUrlFromPath', [path]))
+					imageLinks.append(path)
+					
 				q = Question(student_answers_string, correct_answers_string, points_given, checkbox_category, checkbox_name, imageLinks)
 				category_gen = [x for x in range(len(categories)) if categories[x].name == checkbox_category]
 
@@ -93,11 +93,11 @@ def grade(gradeID, name):
 						points+=1
 				question_category = template_data[question_index][7]		
 				question_name = template_data[question_index][1]
-				imagePaths = template_data[question_index][4].split(',')
+				imagePaths = template_data[question_index][9].split(',')
 				imagePaths = [x.strip(' ') for x in imagePaths]
 				imageLinks = []
 				for path in imagePaths:
-					imageLinks.append(google_execution.main('getImageUrlFromPath', [path]))
+					imageLinks.append(path)
 				q = Question(student_answer, correct_answer, points, question_category, question_name, imageLinks)
 				category_gen = [x for x in range(len(categories)) if categories[x].name == question_category] # finds correct category for this question - category_gen has max length 1
 				if len(category_gen) == 0:
@@ -124,14 +124,14 @@ def grade(gradeID, name):
 				for link in category_q.graphicLinks:
 					linkString += link + ", "
 				question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + " Links: " + linkString + "\n"
-			print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	 
+			#print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	 
+		google_execution.main('setFinalScore', [gradeID, student_row, totalCorrect, totalQuestions])
 		templateLoader = FileSystemLoader(searchpath="./templates")
 		templateEnv = Environment(loader=templateLoader)
-		TEMPLATE_FILE = "index.html"
-		template = templateEnv.get_template(TEMPLATE_FILE)
+		template = templateEnv.get_template("index.html")
 		outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
 		google_execution.main('setResponseAsGraded', [gradeID, student_row])
-		google_sender.run('nishand@gmail.com', response_data[student_row][1], ('Your Grade Report for the quiz: '+name), outputText)
+		google_sender.run('nishand@gmail.com', response_data[student_row][1], ('Your Grade Report for the quiz: ' + name), outputText)
 
 
 
