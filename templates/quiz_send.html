@@ -1,0 +1,26 @@
+<html>
+  <head></head>
+  <body>
+  <center>
+  <div style="box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+  	<table bordercolor="#c29df9" frame="box" bgcolor="#EDE7F6" style="border-collapse: separate; border-spacing: 15px;">
+  		<th bgcolor = "#673AB7" style="color: #f7faff;"><h1>Fill out {{ name }}</h1></th>
+  		<tr>
+  			<td align="left" width="400" bgcolor="#fdfdfd" style="padding:30px; color: #333333;"><b>I've invited you to fill out my form: {{ description }}<b></td>
+  		</tr>	
+  		{% if id %}
+	  		<tr>
+	  			<td align="left" width="400" bgcolor="#fdfdfd" style="padding:30px; color: #333333;"><b>Your ID for results</b> (remember this) is <i>{{ id }}</i></td>
+	  		</tr>
+	  	{% endif %}		  		
+  		<tr>
+  			<td align="center" style="padding:10px; "><a href="{{ link }}"><button style="background-color: #673AB7; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px;">Complete Form</button></a></td>
+  		</tr>
+  		<tr>
+  			<td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2000px-Google_2015_logo.svg.png" width="75px" height="25px"></td>
+  		</tr>			  		
+  	</table>	
+	  </div>
+  </center>   
+  </body>
+</html>

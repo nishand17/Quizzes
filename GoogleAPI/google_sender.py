@@ -22,7 +22,7 @@ from googleapiclient import errors
 SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
 CLIENT_SECRET_FILE = 'client_secret_main.json'
 APPLICATION_NAME = 'Gmail API Python Quickstart'
-
+SEND_EMAIL = 'nishand@gmail.com'
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -49,7 +49,7 @@ def SendMessage(service, user_id, message):
     print 'An error occurred: %s' % error
 
 
-def CreateMessage(sender, to, subject, message_text):
+def CreateMessage(to, subject, message_text):
   """Create a message for an email.
 
   Args:
@@ -63,7 +63,7 @@ Returns:
   message = MIMEMultipart('alternative')
   part1 = MIMEText(message_text, 'html')
   message['to'] = to
-  message['from'] = sender
+  message['from'] = SEND_EMAIL
   message['subject'] = subject
   message.attach(part1)
   return {'raw': base64.urlsafe_b64encode(message.as_string())}
@@ -96,12 +96,12 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-def run(from_email, to_email, subject, message):
+def run(to_email, subject, message):
 	try:
 		credentials = get_credentials()
 		http = credentials.authorize(httplib2.Http())
 		service = discovery.build('gmail', 'v1', http=http)
-		SendMessage(service, "me", CreateMessage(from_email, to_email, subject, message))
+		SendMessage(service, "me", CreateMessage(to_email, subject, message))
 	except Exception as e:
 		print e
 		raise
