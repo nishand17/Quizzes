@@ -134,6 +134,7 @@ def grade(gradeID, name):
 			templateEnv = Environment(loader=templateLoader)
 			template = templateEnv.get_template("index.html")
 			outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
+			print outputText
 			google_sender.run(response_data[student_row][2], ('Your Grade Report for the quiz: ' + name), outputText)
 
 
