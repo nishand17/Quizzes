@@ -1,7 +1,8 @@
 
 from __future__ import print_function
 import httplib2
-import os
+import os, json
+
 
 from googleapiclient import discovery
 from oauth2client import client
@@ -59,7 +60,12 @@ def main(funcName, params):
     Apps Script function to print out a list of folders in the user's root
     directory.
     """
-    SCRIPT_ID = '1qMCpcZto1Dh3_D0dG5y21DuOCdlrAlL5mzezIax1x7bShqpKH-F7q73F'
+
+    with open('configure.json') as data_file:
+        data = json.load(data_file)
+    
+    SCRIPT_ID = data['script_id']
+    
 
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())

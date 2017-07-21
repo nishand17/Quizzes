@@ -9,7 +9,7 @@ import os
 
 #from __future__ import print_function
 import httplib2
-import os
+import os, json
 
 from googleapiclient import discovery
 import oauth2client
@@ -22,7 +22,7 @@ from googleapiclient import errors
 SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
 CLIENT_SECRET_FILE = 'client_secret_main.json'
 APPLICATION_NAME = 'Gmail API Python Quickstart'
-SEND_EMAIL = 'nishand@gmail.com'
+
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -63,7 +63,11 @@ Returns:
   message = MIMEMultipart('alternative')
   part1 = MIMEText(message_text, 'html')
   message['to'] = to
-  message['from'] = SEND_EMAIL
+
+  with open('configure.json') as data_file:
+        data = json.load(data_file)
+
+  message['from'] = data['instructor_email']
   message['subject'] = subject
   message.attach(part1)
   return {'raw': base64.urlsafe_b64encode(message.as_string())}
