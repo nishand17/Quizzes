@@ -16,10 +16,20 @@ function readFromSheet(quizNum) { // 1-numQuizzes
   var quizSheet = SpreadsheetApp.openByUrl(setupSheetValues[rowNum][1]);
   var quizSheetValues = quizSheet.getDataRange().getValues();
   var correctFeedback = FormApp.createFeedback().setText("Good Job! You were correct!").build();
-  var generalFeedback = FormApp.createFeedback().setText("Your graded response will be sent via email soon").build();
+  var generalFeedback = FormApp.createFeedback().setText("Your graded response will be provided soon").build();
   
   form.addSectionHeaderItem().setTitle(quizSheetValues[1][1]).setHelpText(quizSheetValues[1][3]); // WELCOME
-  
+  switch(setupSheetValues[rowNum][7].toString().trim().toLowerCase()) {
+    case 'email':
+      var emailItem = form.addTextItem().setTitle("Enter your email address in order to get your results");
+      var emailValidation = FormApp.createTextValidation().requireTextIsEmail().build();
+      emailItem.setValidation(emailValidation);
+      break;
+    case 'id':
+      var idItem = form.addTextItem().setTitle("Enter your ID (given in the email sent to you) in order to get your results");
+      var idValidation = FormApp.createTextValidation().requireNumber().build();
+      idItem.setValidation(idValidation);
+  }
   for(var i = 2; i < quizSheet.getDataRange().getLastRow(); i++) {
     if(quizSheetValues[i][2].trim().toLowerCase() != quizSheetValues[i-1][2].trim().toLowerCase()) { //New Section
       form.addPageBreakItem().setTitle(quizSheetValues[i][2]).setHelpText(quizSheetValues[i][3]);
@@ -30,6 +40,7 @@ function readFromSheet(quizNum) { // 1-numQuizzes
         form.addSectionHeaderItem().setTitle("Question " + questionNum++);
         if(quizSheetValues[i][4].toString().trim().toLowerCase() != 'none') {
           var paths = quizSheetValues[i][4].toString().split(",");
+          var links = "";
           for(var imgIter = 0; imgIter < paths.length; imgIter++) {
             var pathArr = paths[imgIter].split("/");
             var image = null;
@@ -46,7 +57,9 @@ function readFromSheet(quizNum) { // 1-numQuizzes
             }
             var title = pathArr[pathArr.length-1];
             form.addImageItem().setImage(image).setTitle(title.substring(0,title.length-4));
+            links+= getImageUrlFromPath(paths[imgIter]) + ","
           }
+          var linkCell = quizSheet.getRange("J"+((i+1).toString())).setValue(links.substring(0,links.length-1)); 
         }
         
         var questionArr = quizSheetValues[i][5].toString().split(",");
@@ -93,7 +106,15 @@ function readFromSheet(quizNum) { // 1-numQuizzes
             break;
           
           case 'text':
-            var textItem = form.addParagraphTextItem().setTitle(quizSheetValues[i][1]).setHelpText(quizSheetValues[i][3]).setPoints(1).setRequired(true);            
+            var textItem;  
+            if(isInt(quizSheetValues[i][6].toString()) || isFloat(quizSheetValues[i][6].toString())) {
+              textItem = form.addTextItem().setTitle(quizSheetValues[i][1]).setHelpText(quizSheetValues[i][3]).setPoints(1).setRequired(true);
+              var textValidation = FormApp.createTextValidation().requireNumber().setHelpText("Your answer must be a number").build();
+              textItem.setValidation(textValidation);
+            }
+            else {
+              textItem = form.addParagraphTextItem().setTitle(quizSheetValues[i][1]).setHelpText(quizSheetValues[i][3]).setPoints(1).setRequired(true);
+            }
             textItem.setGeneralFeedback(generalFeedback);
             break;
           case 'checkbox':
@@ -190,9 +211,85 @@ function getTemplateData(quizNum) {
   return templateData;
 }
 function testQuizSheet() {
-  readFromSheet(1);
+  setResponseAsGraded(1, 1);
 }
 
+function setResponseAsGraded(quizNum, responseRow) {
+  var sheet = SpreadsheetApp.openByUrl(getUrl());
+  var sheetValues = sheet.getDataRange().getDisplayValues();
+  var responseSheet = SpreadsheetApp.openByUrl(sheetValues[quizNum][3].toString());
+  var responseSheetValues = responseSheet.getDataRange().getDisplayValues();
+  var gradedCell = responseSheet.getRange("A"+((responseRow+1).toString())).setValue(responseSheetValues[responseRow][0]+ " GRADED");
+  
+}
+
+function setFinalScore(quizNum, responseRow, pointsGiven, pointsTotal) {
+  var sheet = SpreadsheetApp.openByUrl(getUrl());
+  var sheetValues = sheet.getDataRange().getDisplayValues();
+  var responseSheet = SpreadsheetApp.openByUrl(sheetValues[quizNum][3].toString());
+  var responseSheetValues = responseSheet.getDataRange().getDisplayValues();
+  var scoreCell = responseSheet.getRange("B"+((responseRow+1).toString())).setValue(pointsGiven.toString() + "/" + pointsTotal.toString());
+}
+
+function getMasterData() {
+  var sheetData = SpreadsheetApp.openByUrl(getUrl()).getDataRange().getDisplayValues();
+  Logger.log(sheetData);
+  return sheetData;
+}
 function getUrl() {
   return 'https://docs.google.com/spreadsheets/d/12lofWvDfhslU2abn407SwK41feHcZWiAQcRgsKtzHnc/edit#gid=0';
+}
+
+function isInt(num) {
+  var val = parseInt(num)
+  if(isNaN(val)) {
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
+function isFloat(num) {
+  var val = parseFloat(num)
+  if(isNaN(val)) {
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
+function getImageUrlFromPath(file) {
+  var pathArr = file.split("/");
+  var image = null;
+  if(pathArr.length == 1) {
+    image = DriveApp.getFilesByName(pathArr[0]).next();
+  }
+  else {
+    var rootFolder = DriveApp.getFoldersByName(pathArr[0].trim()).next();
+    
+    for(var folderIter = 1; folderIter < pathArr.length-1; folderIter++) {
+      rootFolder = rootFolder.getFoldersByName(pathArr[folderIter]).next();
+    }
+    image = rootFolder.getFilesByName(pathArr[pathArr.length-1]).next();
+  }
+  var rawLink = image.getUrl();
+  var id = rawLink.split("/")[5];
+  var link = "https://docs.google.com/uc?id=" + id;
+  return link;
+  
+}
+
+function addIDToTemplate(quizNum, idNum) {
+  var sheet = SpreadsheetApp.openByUrl(getUrl());
+  var sheetValues = sheet.getDataRange().getDisplayValues();
+  var templateSheet = SpreadsheetApp.openByUrl(sheetValues[quizNum][1].toString());
+  var templateData = templateSheet.getDataRange().getDisplayValues();
+  
+  var idCell = templateSheet.getRange("K"+((2).toString())).setValue(idNum)
+}
+
+function testTest() {
+  addIDToTemplate(2, 1)
 }
