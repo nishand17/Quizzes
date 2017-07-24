@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>QuizApp - All Quizzes</title>
+</head>
+<body>
+<center>
+	<h1>All Quizzes</h1>
+	<h5>Select the Quiz which you want to see</h5>
+</center>
+{% for quiz in quizzes %}
+	<a href="/quiz/{{quiz.q_id}}/"><h3>{{quiz.name}}</h3></a>
+{% endfor %}
+</body>
+</html>

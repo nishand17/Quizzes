@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Results for Quiz {{quiz.name}}</title>
+</head>
+<body>
+<h3>Result IDs - Click on your corresponding ID</h3>
+{% for result in results %}
+	<p><a href="/quiz/{{quiz.q_id}}/{{result.relational_id}}/">{{result.relational_id}}</a></p>
+{% endfor %}
+</body>
+</html>

@@ -142,7 +142,9 @@ def grade(gradeID, name):
 option = raw_input("Enter what you wish to do (send, create, view, grade)\n")
 
 if option == 'send':	
-	# TODO validate form info
+	templateLoader = FileSystemLoader(searchpath="./templates")
+	templateEnv = Environment(loader=templateLoader)
+	template = templateEnv.get_template("quiz_send.html")
 	quiz_list = google_execution.main('getSendList', None)
 	print "Here are your quizzes that can be sent out. If the quiz you wish to send out isn't here, make sure to fill out the master Google Sheet with the required information (recipients and form links)"
 	for index in range(len(quiz_list)):
@@ -155,21 +157,20 @@ if option == 'send':
 	matrix, link, description, name = send_info['respondents'], send_info['formUrl'], send_info['description'], send_info['title']	
 	master_data = google_execution.main('getMasterData', [sendID])
 	del matrix[0]
+	print 'Sending...'
 	for email_row in matrix:
 		response_id = None
 		if master_data[sendID][7].lower().strip(' ') == "id":
 			template_data = google_execution.main('getTemplateData', [sendID])
-			last_id = [row[10] for row in template_data if row[10]][-1]
-			if str(last_id).strip(' ') == 'UserIDs':
+			last_id = template_data[1][10]
+			if str(last_id).strip(' ') == '':
 				response_id = 1
 			else: 
 				response_id = int(last_id) + 1 
 		google_execution.main('addIDToTemplate', [sendID, response_id])
 		
 		
-		templateLoader = FileSystemLoader(searchpath="./templates")
-		templateEnv = Environment(loader=templateLoader)
-		template = templateEnv.get_template("quiz_send.html")
+		
 		outputText = template.render(name=name, description=description, id=response_id, link=link)
 		google_sender.run(email_row[0], "Google Quiz Invitation via QuizApp", outputText)	
 
@@ -182,6 +183,7 @@ elif option == 'create' or option == 'view':
 	if viewID not in range(1, len(create_list)+1):
 		print "Sorry, there is no quiz with that ID"
 		exit()
+	print 'Creating quiz... please wait'	
 	quiz_info = google_execution.main('readFromSheet', [viewID])	
 	print "Published Link:", quiz_info[0], "\nEdit Link:", quiz_info[1]
 elif option == 'grade':

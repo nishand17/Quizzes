@@ -1,5 +1,5 @@
 from app import app, db
-from flask import jsonify, request, abort
+from flask import jsonify, request, abort, render_template
 from .models import Quiz, Result
 
 
@@ -11,10 +11,7 @@ def index():
 @app.route('/quiz/', methods=['GET'])
 def quiz():
 	quizzes = Quiz.query.all()
-	s = ''
-	for quiz in quizzes:
-		s+= quiz.name
-	return s	# TEMPLATE
+	return render_template('all_quizzes.html', quizzes=quizzes)
 
 
 @app.route('/quiz/', methods=['POST'])
@@ -31,10 +28,7 @@ def get_results(quiz_id):
 	q = Quiz.query.get(quiz_id)
 	if not q:
 		abort(400)
-	s = ''	
-	for result in q.results:
-		s+= (str(result.relational_id) + " " + result.body +  " " + str(result.author.q_id) + "\n")
-	return s # TEMPLATE
+	return render_template('quiz_results.html', quiz=q, results=q.results)
 		
 
 @app.route('/quiz/<int:quiz_id>/', methods=['POST']) #post new result to existing quiz
@@ -59,7 +53,7 @@ def result(quiz_id, result_id):
 		if str(result.relational_id) == str(result_id):
 			queried_result = result
 			break
-	return result.body + ' ' + str(result.relational_id)	 # HTML TEMPLATE
+	return result.body 
 
 
 
