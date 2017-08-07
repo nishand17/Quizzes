@@ -1,6 +1,7 @@
 from GoogleAPI import google_sender, google_execution
 from grade_classes import Category, Question, is_float, is_int
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+import requests
 
 def grade(gradeID, name):
 	'''
@@ -129,13 +130,19 @@ def grade(gradeID, name):
 		google_execution.main('setFinalScore', [gradeID, student_row, totalCorrect, totalQuestions])
 		
 		google_execution.main('setResponseAsGraded', [gradeID, student_row])
+		templateLoader = FileSystemLoader(searchpath="./templates")
+		templateEnv = Environment(loader=templateLoader)
+		template = templateEnv.get_template("index.html")
+		outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
 		if master_data[gradeID][7].lower().strip(' ') == 'email':
-			templateLoader = FileSystemLoader(searchpath="./templates")
-			templateEnv = Environment(loader=templateLoader)
-			template = templateEnv.get_template("index.html")
-			outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
-			print outputText
 			google_sender.run(response_data[student_row][2], ('Your Grade Report for the quiz: ' + name), outputText)
+		elif master_data[gradeID][7].lower().strip(' ') == 'id':
+			print 'Posting result to website'
+			url = 'http://localhost:5000/quiz/%s/'%(master_data[gradeID][8])
+			rel_id = int(response_data[student_row][2])
+			grade_response = requests.post(url=url, json={'body': outputText, 'relational_id': rel_id}) 
+
+			
 
 
 
@@ -155,7 +162,7 @@ if option == 'send':
 		exit()
 	send_info = google_execution.main('getSendInfo', [sendID]) 
 	matrix, link, description, name = send_info['respondents'], send_info['formUrl'], send_info['description'], send_info['title']	
-	master_data = google_execution.main('getMasterData', [sendID])
+	master_data = google_execution.main('getMasterData', None)
 	del matrix[0]
 	print 'Sending...'
 	for email_row in matrix:
@@ -186,6 +193,16 @@ elif option == 'create' or option == 'view':
 	print 'Creating quiz... please wait'	
 	quiz_info = google_execution.main('readFromSheet', [viewID])	
 	print "Published Link:", quiz_info[0], "\nEdit Link:", quiz_info[1]
+	#post quiz to website
+	master_data = google_execution.main('getMasterData', None)
+	if master_data[viewID][7].lower().strip(' ') == 'id':
+		quiz_name = str(master_data[viewID][0])
+		req_response = requests.post(url='http://localhost:5000/quiz/', json={'name': quiz_name})
+		global_id = int(req_response.text)
+		google_execution.main('setGlobalIDForQuiz', [viewID, global_id])
+		print 'Published Quiz to Website'
+
+
 elif option == 'grade':
 	grade_list = google_execution.main('getGradeList', None)
 	print "Here are the current quizzes you can grade"

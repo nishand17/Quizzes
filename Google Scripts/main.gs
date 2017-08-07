@@ -1,4 +1,4 @@
-function readFromSheet(quizNum) { // 1-numQuizzes
+function readFromSheet(quizNum) { 
   var sheet = SpreadsheetApp.openByUrl(getUrl());
   var setupSheetValues = sheet.getDataRange().getValues();
   var rowNum = parseInt(quizNum);  
@@ -236,9 +236,6 @@ function getMasterData() {
   Logger.log(sheetData);
   return sheetData;
 }
-function getUrl() {
-  return 'https://docs.google.com/spreadsheets/d/12lofWvDfhslU2abn407SwK41feHcZWiAQcRgsKtzHnc/edit#gid=0';
-}
 
 function isInt(num) {
   var val = parseInt(num)
@@ -287,9 +284,26 @@ function addIDToTemplate(quizNum, idNum) {
   var templateSheet = SpreadsheetApp.openByUrl(sheetValues[quizNum][1].toString());
   var templateData = templateSheet.getDataRange().getDisplayValues();
   
-  var idCell = templateSheet.getRange("K"+((2).toString())).setValue(idNum)
+  var idCell = templateSheet.getRange("K2").setValue(idNum);
 }
 
 function testTest() {
-  addIDToTemplate(2, 1)
+  getGlobalIDForQuiz(1);
+}
+
+function setGlobalIDForQuiz(quizNum, idNum) {
+  var sheet = SpreadsheetApp.openByUrl(getUrl());
+  var sheetValues = sheet.getDataRange().getDisplayValues();
+  var idCell = sheet.getRange("I"+((quizNum+1).toString())).setValue(idNum);
+}
+
+function getGlobalIDForQuiz(quizNum) {
+  var sheet = SpreadsheetApp.openByUrl(getUrl());
+  var sheetValues = sheet.getDataRange().getDisplayValues();
+  return sheetValues[quizNum][8];
+  
+}
+
+function getUrl() {
+  return 'https://docs.google.com/spreadsheets/d/12lofWvDfhslU2abn407SwK41feHcZWiAQcRgsKtzHnc/edit#gid=0';
 }

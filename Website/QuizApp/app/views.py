@@ -14,14 +14,14 @@ def quiz():
 	return render_template('all_quizzes.html', quizzes=quizzes)
 
 
-@app.route('/quiz/', methods=['POST'])
+@app.route('/quiz/', methods=['POST']) # Post new quiz
 def post_quiz():	
 	if not request.json or not 'name' in request.json:
 		abort(400)
 	q = Quiz(name = request.json.get('name', 'Default'))
 	db.session.add(q)
 	db.session.commit()
-	return q.name + " " + str(q.q_id)
+	return str(q.q_id)
 
 @app.route('/quiz/<int:quiz_id>/', methods=['GET']) # list of results by ID
 def get_results(quiz_id):
@@ -38,7 +38,7 @@ def post_result(quiz_id):
 	q = Quiz.query.get(quiz_id)	
 	if not q:
 		abort(400)
-	result = Result(relational_id = request.json['relational_id'], body=request.json['body'], author=q)
+	result = Result(relational_id = request.json['relational_id'], body=request.json['body'], author=q, quiz_id=q.q_id)
 	db.session.add(result)
 	db.session.commit()
 	return result.body + " " + str(result.relational_id) + " " + str(result.author) + " " + str(result.quiz_id)

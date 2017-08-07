@@ -22,7 +22,7 @@ class Result(db.Model):
 	quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.q_id'))
 
 	def __repr__(self):
-		return 'Result<%s, %s, %s>' % (self.result_id, self.relational_id, self.author.q_id)
+		return 'Result<%s, %s, %s>' % (self.result_id, self.relational_id, self.quiz_id)
 
 	def to_json(self): 
 		return json.dumps(self, default=lambda o: o.__dict__, 
