@@ -23,7 +23,7 @@ def grade(gradeID, name):
 		if response_data[student_row][0].split(' ')[-1] == "GRADED": # Makes sure not to grade something twice 
 			continue
 		for question_index, response_place in zip(question_indices, range(3, 3+len(question_indices))): # loops though questions and responses
-			if template_data[question_index][5].split(',')[0] == 'checkbox': # special cases for checkboxes because it has several answers/repsonses (that's the only difference, but more has to be accounted for)
+			if template_data[question_index][5].split(',')[0] == 'checkbox': # special cases for checkboxes because it has several answers/repsonses (that's the only difference, but more has to be accounted for - see the elif for more documentation)
 				points_per_check = float(1)/len(template_data[question_index][6].split(','))
 				student_answer_list = response_data[student_row][response_place].split(',')
 				student_answers = [x.strip(' ') for x in student_answer_list]
@@ -88,27 +88,26 @@ def grade(gradeID, name):
 					else:
 						if low_bound <= abs(student_int) <= high_bound: 
 							points+=1
-													
 				    		
 				else: 
 					if student_answer == correct_answer: # otherwise, an exact answer is required
 						points+=1
 				question_category = template_data[question_index][7]		
 				question_name = template_data[question_index][1]
-				imagePaths = template_data[question_index][9].split(',')
+				imagePaths = template_data[question_index][9].split(',') # imagePaths are saved in the question structure to be accessed by the HTML rendering lib
 				imagePaths = [x.strip(' ') for x in imagePaths]
 				imageLinks = []
 				for path in imagePaths:
 					imageLinks.append(path)
 				q = Question(student_answer, correct_answer, points, question_category, question_name, imageLinks)
-				category_gen = [x for x in range(len(categories)) if categories[x].name == question_category] # finds correct category for this question - category_gen has max length 1
-				if len(category_gen) == 0:
+				category_gen = [x for x in range(len(categories)) if categories[x].name == question_category] # finds correct category for this question - category_gen has max length 1 because each quiz only has 1 category of each name (duh)
+				if len(category_gen) == 0: # new category created
 					c = Category(question_category)
 					c.numQuestions+=1
 					c.totalPoints+=points
 					c.questions.append(q)
 					categories.append(c)
-				else:
+				else: # adds question to existing
 					category_index = category_gen[0]
 					categories[category_index].numQuestions+=1
 					categories[category_index].totalPoints+=points
@@ -119,32 +118,30 @@ def grade(gradeID, name):
 			cat.correctPercentage = round((float(cat.totalPoints)/float(cat.numQuestions)*100), 2)
 			totalQuestions+= cat.numQuestions
 			totalCorrect+= cat.totalPoints
-
-			question_string = ''
-			for category_q in cat.questions: 
-				linkString = ''
-				for link in category_q.graphicLinks:
-					linkString += link + ", "
-				question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + " Links: " + linkString + "\n"
-			#print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	 
-		google_execution.main('setFinalScore', [gradeID, student_row, totalCorrect, totalQuestions])
+			# commented below is for debugging purposes
+			#question_string = '' 
+			# for category_q in cat.questions: 
+			# 	linkString = ''
+			# 	for link in category_q.graphicLinks:
+			# 		linkString += link + ", "
+			# 	question_string += "Question Name: " + category_q.name + " Student Answer: " + category_q.studentAnswer + " Correct Answer: " + category_q.correctAnswer + " Points Given: " + str(category_q.pointsGiven) + " Links: " + linkString + "\n"
+			# #print "CategoryName: ", cat.name, " CategoryNumQ: ", cat.numQuestions, " Total Points: ", cat.totalPoints, "Percentage", cat.correctPercentage, " Questions\n", question_string, 	 
 		
+		google_execution.main('setFinalScore', [gradeID, student_row, totalCorrect, totalQuestions]) # modifies grade spreadsheet
 		google_execution.main('setResponseAsGraded', [gradeID, student_row])
+
 		templateLoader = FileSystemLoader(searchpath="./templates")
 		templateEnv = Environment(loader=templateLoader)
 		template = templateEnv.get_template("index.html")
-		outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories)
-		if master_data[gradeID][7].lower().strip(' ') == 'email':
+		outputText = template.render(name=name, final_score=totalCorrect, total_questions=totalQuestions, categories=categories) # renders HTML template for each result
+		
+		if master_data[gradeID][7].lower().strip(' ') == 'email': 
 			google_sender.run(response_data[student_row][2], ('Your Grade Report for the quiz: ' + name), outputText)
 		elif master_data[gradeID][7].lower().strip(' ') == 'id':
 			print 'Posting result to website'
 			url = 'http://localhost:5000/quiz/%s/'%(master_data[gradeID][8])
 			rel_id = int(response_data[student_row][2])
-			grade_response = requests.post(url=url, json={'body': outputText, 'relational_id': rel_id}) 
-
-			
-
-
+			grade_response = requests.post(url=url, json={'body': outputText, 'relational_id': rel_id}) #posts specific result to quiz with correct global ID
 
 option = raw_input("Enter what you wish to do (send, create, view, grade)\n")
 
@@ -202,7 +199,6 @@ elif option == 'create' or option == 'view':
 		google_execution.main('setGlobalIDForQuiz', [viewID, global_id])
 		print 'Published Quiz to Website'
 
-
 elif option == 'grade':
 	grade_list = google_execution.main('getGradeList', None)
 	print "Here are the current quizzes you can grade"
@@ -213,6 +209,3 @@ elif option == 'grade':
 		print "Sorry, there is no quiz with that ID"
 		exit()
 	grade(gradeID, grade_list[gradeID-1])	
-
-
-	
