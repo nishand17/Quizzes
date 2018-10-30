@@ -4,16 +4,6 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import requests
 
 def grade(gradeID, name):
-	'''
-	1. Retrieve both template and response data 
-	2. Run through each question keeping track of studentAnswer, correctAnswer, isCorrect, category
-	3. Keep track of Categories including categoryName, totalNumQuestions, numCorrect
-	
-	CHANGELOG:
-	1. Pictures of graphics
-	2. Numerical validation for textboxes
-	3. Partial credit gives full credit in range
-	'''
 	template_data = google_execution.main('getTemplateData',[gradeID])
 	response_data = google_execution.main('getResponsesData', [gradeID])
 	master_data = google_execution.main('getMasterData', None)
@@ -75,8 +65,7 @@ def grade(gradeID, name):
 						points+=1
 					else:
 						if low_bound <= abs(student_float) <= high_bound: 
-							points+=1 
-				    		  	
+							points+=1 			    		  	
 				elif is_int(correct_answer): #partial credit ints
 					student_int = int(student_answer)
 					correct_int = int(correct_answer)
@@ -174,8 +163,8 @@ if option == 'send':
 		google_execution.main('addIDToTemplate', [sendID, response_id])
 		
 		
-		
-		outputText = template.render(name=name, description=description, id=response_id, link=link)
+		results_url = master_data[sendID][9]
+		outputText = template.render(name=name, description=description, id=response_id, link=link, results_url=results_url)
 		google_sender.run(email_row[0], "Google Quiz Invitation via QuizApp", outputText)	
 
 elif option == 'create' or option == 'view':
@@ -195,6 +184,8 @@ elif option == 'create' or option == 'view':
 	if master_data[viewID][7].lower().strip(' ') == 'id':
 		quiz_name = str(master_data[viewID][0])
 		req_response = requests.post(url='http://localhost:5000/quiz/', json={'name': quiz_name})
+		quiz_url = 'http://localhost:5000/quiz/'+str(req_response.text)+'/'
+		google_execution.main('setResultsPage', [quiz_url, quiz_info[1], viewID])
 		global_id = int(req_response.text)
 		google_execution.main('setGlobalIDForQuiz', [viewID, global_id])
 		print 'Published Quiz to Website'
